@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f5f7f5">
+<title>Money Mate</title>
+<style>
+:root{--bg:#f5f7f5;--card:#fff;--ink:#202923;--muted:#738078;--line:#e5ebe6;--green:#267a55;--pale:#e8f3ec;--orange:#b86a27;--red:#b94b4b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;padding-bottom:calc(78px + env(safe-area-inset-bottom))}
+header{padding:22px 18px 12px;max-width:760px;margin:auto}header .eyebrow{font-size:12px;color:var(--green);font-weight:700;letter-spacing:.08em}h1{font-size:25px;margin:5px 0 2px}header p{margin:0;color:var(--muted);font-size:13px}
+main{max-width:760px;margin:auto;padding:8px 14px 28px}.page{display:none}.page.active{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin:10px 0;box-shadow:0 2px 10px #152b1a08}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}.muted{color:var(--muted)}.small{font-size:12px}.big{font-size:31px;font-weight:800;letter-spacing:-.03em}.section-title{font-weight:750;font-size:16px;margin:18px 3px 8px}
+input,select,textarea,button{font:inherit}input,select,textarea{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);font-size:16px;min-width:0}
+textarea{min-height:84px;resize:vertical}.field{margin:10px 0}.field label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px 3px}
+button{border:0;border-radius:12px;padding:12px 14px;background:var(--green);color:white;font-weight:700;cursor:pointer}
+button.secondary{background:var(--pale);color:var(--green)}button.ghost{background:#f0f3f0;color:var(--ink)}button.danger{background:#faeeee;color:var(--red)}
+button:active{opacity:.8}.actions{display:flex;gap:8px;flex-wrap:wrap}.actions button{flex:1}
+nav{position:fixed;z-index:5;bottom:0;left:0;right:0;background:#ffffffed;backdrop-filter:blur(14px);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:8px 4px calc(8px + env(safe-area-inset-bottom))}
+nav button{background:transparent;color:var(--muted);padding:7px 4px;flex:1;font-size:11px;font-weight:650;border-radius:10px}
+nav button.active{background:var(--pale);color:var(--green)}nav span{display:block;font-size:19px;margin-bottom:2px}
+.progress{height:9px;background:#edf1ed;border-radius:99px;overflow:hidden;margin:10px 0}.progress>i{display:block;height:100%;background:var(--green);border-radius:99px}
+.catrow{margin:13px 0}.catrow .bar{height:8px;background:#edf1ed;border-radius:20px;overflow:hidden;margin-top:6px}.catrow .bar i{display:block;height:100%;background:#5c9b78}
+.pill{font-size:11px;padding:4px 8px;border-radius:99px;background:var(--pale);color:var(--green);font-weight:700}
+.entry{padding:12px 0;border-bottom:1px solid var(--line)}.entry:last-child{border:0}.entry .desc{font-weight:650}.entry .meta{font-size:12px;color:var(--muted);margin-top:3px}
+.advice{border-left:4px solid #78a98b;background:#f2f8f3;padding:12px;border-radius:10px;margin:9px 0;font-size:14px;line-height:1.55}
+.warning{border-left-color:#d89a55;background:#fff8ef}.empty{text-align:center;color:var(--muted);padding:22px 8px;font-size:14px}
+.monthnav{display:flex;align-items:center;justify-content:space-between;margin:8px 0}.monthnav button{padding:7px 12px}
+table{width:100%;border-collapse:collapse;font-size:12px;text-align:center}td,th{padding:8px 2px;border:1px solid var(--line)}td button{padding:7px 0;width:100%;background:#f3f7f3;color:var(--ink);font-size:12px}.today{outline:2px solid var(--green)}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<header><div class="eyebrow">YOUR PERSONAL MONEY TRACKER</div><h1>Money Mate</h1><p>記録するだけじゃなく、お金の使い方も一緒に考えよう。</p></header>
+<main>
+<section id="home" class="page active">
+ <div class="card">
+  <div class="row"><span class="muted small" id="monthLabel">今月の生活費</span><span class="pill">積立は別管理</span></div>
+  <div class="big" id="remaining">¥60,000</div><div class="muted small">予算の残り</div>
+  <div class="progress"><i id="budgetBar" style="width:0%"></i></div>
+  <div class="row small"><span>支出 <b id="spent">¥0</b></span><span>予算 <b id="budgetText">¥60,000</b></span></div>
+ </div>
+ <div class="row">
+  <div class="card" style="flex:1;margin:5px 3px"><div class="muted small">今日の支出</div><div style="font-size:21px;font-weight:800" id="todayTotal">¥0</div></div>
+  <div class="card" style="flex:1;margin:5px 3px"><div class="muted small">今月の記録数</div><div style="font-size:21px;font-weight:800" id="recordCount">0件</div></div>
+ </div>
+ <div class="section-title">今月の支出内訳</div><div class="card" id="homeCats"></div>
+ <div class="section-title">今日の記録</div><div class="card" id="todayEntries"></div>
+ <div class="actions"><button onclick="showPage('input')">＋ 支出を記録する</button><button class="secondary" onclick="showPage('analysis')">分析を見る</button></div>
+</section>
+
+<section id="input" class="page">
+ <div class="section-title">支出を記録</div>
+ <div class="card">
+  <div class="field"><label>チャットでまとめて入力</label><textarea id="quickText" placeholder="例：昼ご飯850円、カフェ600円、ガソリン2000円"></textarea></div>
+  <div class="small muted">「現金」「カード」も文章に入れると支払方法を記録できるよ。項目が不明なときは後から編集してね。</div>
+  <button style="width:100%;margin-top:10px" onclick="parseQuick()">入力内容を記録</button>
+ </div>
+ <div class="card">
+  <div class="row"><b>1件ずつ入力</b><span class="pill">あとから修正OK</span></div>
+  <div class="field"><label>内容</label><input id="desc" placeholder="例：昼ご飯"></div>
+  <div class="field"><label>金額（円）</label><input id="amount" type="number" inputmode="numeric" placeholder="850"></div>
+  <div class="field"><label>項目</label><select id="category"></select></div>
+  <div class="field"><label>日付</label><input id="date" type="date"></div>
+  <div class="field"><label>支払方法</label><select id="payment"><option>現金</option><option>クレジットカード</option><option>電子マネー・QR</option><option>その他</option></select></div>
+  <button style="width:100%" onclick="addManual()">保存する</button>
+ </div>
+ <div class="card">
+  <b>収入・積立の記録</b>
+  <div class="field"><label>収入金額（円）</label><input id="incomeAmount" type="number" inputmode="numeric" placeholder="例：100000"></div>
+  <button class="secondary" style="width:100%" onclick="addIncome()">収入を記録</button>
+  <div class="field"><label>SBI積立額（生活費予算とは別）</label><input id="investAmount" type="number" inputmode="numeric" placeholder="5000"></div>
+  <button class="ghost" style="width:100%" onclick="saveInvest()">積立額を保存</button>
+ </div>
+</section>
+
+<section id="calendar" class="page">
+ <div class="section-title">カレンダー</div>
+ <div class="card">
+  <div class="monthnav"><button class="secondary" onclick="changeMonth(-1)">‹</button><b id="calTitle"></b><button class="secondary" onclick="changeMonth(1)">›</button></div>
+  <div id="calendarGrid"></div>
+  <div class="small muted" style="margin-top:10px">日付をタップすると、その日の記録を確認できるよ。</div>
+ </div>
+ <div class="section-title" id="selectedDateLabel">選択した日の記録</div><div class="card" id="dayEntries"></div>
+</section>
+
+<section id="analysis" class="page">
+ <div class="section-title">家計分析</div>
+ <div class="card">
+  <div class="row"><b>今月のまとめ</b><span class="pill" id="analysisMonth"></span></div>
+  <div class="row" style="margin-top:12px"><span class="muted">支出合計</span><b id="analysisSpent">¥0</b></div>
+  <div class="row" style="margin-top:8px"><span class="muted">収入合計</span><b id="analysisIncome">¥0</b></div>
+  <div class="row" style="margin-top:8px"><span class="muted">予算残り</span><b id="analysisRemaining">¥0</b></div>
+ </div>
+ <div class="section-title">項目別の支出</div><div class="card" id="analysisCats"></div>
+ <div class="section-title">節約アドバイス</div><div class="card" id="adviceBox"></div>
+ <div class="card">
+  <b>AIに詳しく相談する</b>
+  <p class="small muted">記録をもとに相談文を作るよ。コピーしてChatGPTに送れば、項目ごとの見直しを一緒にできるよ。</p>
+  <button style="width:100%" onclick="copyAdvicePrompt()">今月のデータで相談文を作成・コピー</button>
+  <div id="copyStatus" class="small muted" style="margin-top:8px"></div>
+ </div>
+</section>
+
+<section id="goals" class="page">
+ <div class="section-title">貯金目標</div>
+ <div class="card">
+  <div class="field"><label>目標の名前</label><input id="goalName" placeholder="例：旅行・新しいギター"></div>
+  <div class="field"><label>目標金額（円）</label><input id="goalTarget" type="number" inputmode="numeric" placeholder="50000"></div>
+  <div class="field"><label>現在の貯金額（円）</label><input id="goalCurrent" type="number" inputmode="numeric" placeholder="10000"></div>
+  <button style="width:100%" onclick="saveGoal()">目標を保存</button>
+ </div>
+ <div id="goalDisplay" class="card"></div>
+</section>
+
+<section id="settings" class="page">
+ <div class="section-title">設定・バックアップ</div>
+ <div class="card">
+  <div class="field"><label>毎月の生活費予算（円）</label><input id="budgetSetting" type="number" inputmode="numeric"></div>
+  <button style="width:100%" onclick="saveBudget()">予算を保存</button>
+  <p class="small muted">SBI積立は生活費予算に含めず、別枠で記録する設定だよ。</p>
+ </div>
+ <div class="card">
+  <b>データのバックアップ</b><p class="small muted">記録はこの端末・ブラウザ内に保存されるよ。機種変更やブラウザのデータ削除に備えて、定期的にバックアップしてね。</p>
+  <div class="actions"><button onclick="exportBackup()">バックアップ保存</button><button class="secondary" onclick="document.getElementById('restoreFile').click()">復元</button></div>
+  <input id="restoreFile" type="file" accept="application/json" class="hidden" onchange="restoreBackup(event)">
+  <button class="ghost" style="width:100%;margin-top:9px" onclick="exportCSV()">支出CSVを書き出す</button>
+ </div>
+ <div class="card">
+  <b>毎日21時の入力確認</b>
+  <p class="small muted">このページを閉じていても通知を出すには、iPhoneの「ショートカット」アプリで21時のオートメーションを設定してね。アプリ内だけで確実な通知を予約することはできないよ。</p>
+ </div>
+</section>
+</main>
+<nav>
+ <button class="active" data-page="home" onclick="showPage('home')"><span>⌂</span>ホーム</button>
+ <button data-page="input" onclick="showPage('input')"><span>＋</span>入力</button>
+ <button data-page="calendar" onclick="showPage('calendar')"><span>▦</span>カレンダー</button>
+ <button data-page="analysis" onclick="showPage('analysis')"><span>▤</span>分析</button>
+ <button data-page="goals" onclick="showPage('goals')"><span>☆</span>貯金</button>
+ <button data-page="settings" onclick="showPage('settings')"><span>⚙</span>設定</button>
+</nav>
+<script>
+const KEY='money_mate_v2_data';
+const cats=['食費','カフェ・飲み物','交通費・ガソリン','交際費','趣味・娯楽','日用品','服・美容','学業・仕事','その他'];
+let data=load(), calDate=new Date(), selectedDate=iso(new Date());
+function fresh(){return {expenses:[],incomes:[],budget:60000,investment:5000,goal:null}}
+function load(){try{return {...fresh(),...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch(e){return fresh()}}
+function save(){localStorage.setItem(KEY,JSON.stringify(data));render()}
+function yen(n){return '¥'+Number(n||0).toLocaleString('ja-JP')}
+function iso(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function monthKey(d=new Date()){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`}
+function thisExpenses(){return data.expenses.filter(x=>x.date.slice(0,7)===monthKey())}
+function sum(arr){return arr.reduce((a,x)=>a+Number(x.amount||0),0)}
+function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===id));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===id));render()}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function guessCat(s){if(/ガソリン|電車|バス|タクシー|交通/.test(s))return '交通費・ガソリン';if(/カフェ|コーヒー|スタバ|飲み物/.test(s))return 'カフェ・飲み物';if(/ご飯|昼食|夕食|朝食|ランチ|食事|弁当|ラーメン|食費/.test(s))return '食費';if(/飲み会|遊び|プレゼント/.test(s))return '交際費';if(/ゲーム|ギター|音楽|映画|趣味/.test(s))return '趣味・娯楽';if(/服|美容|散髪/.test(s))return '服・美容';if(/洗剤|日用品|ティッシュ/.test(s))return '日用品';return 'その他'}
+function addExpense(x){if(!x.desc||!Number(x.amount)||Number(x.amount)<=0)return false;data.expenses.push({id:Date.now()+Math.random(),desc:x.desc,amount:Number(x.amount),category:x.category||guessCat(x.desc),date:x.date||iso(new Date()),payment:x.payment||'現金'});return true}
+function parseQuick(){
+ const raw=document.getElementById('quickText').value.trim();if(!raw){alert('入力内容を書いてね');return}
+ const matches=[...raw.matchAll(/([^、,。\n]+?)\s*([0-9,]+)\s*円/g)];
+ if(!matches.length){alert('「昼ご飯850円」のように、内容と金額を書いてね');return}
+ let count=0;for(const m of matches){let desc=m[1].trim().replace(/^(今日|昨日|一昨日|現金|カード|クレカ|電子マネー)\s*/,'').trim();let payment=/カード|クレカ/.test(raw)?'クレジットカード':/電子マネー|PayPay|Suica/.test(raw)?'電子マネー・QR':'現金';if(addExpense({desc,amount:m[2].replace(/,/g,''),payment}))count++}
+ document.getElementById('quickText').value='';save();alert(`${count}件記録したよ。項目や支払方法は履歴から確認・修正してね。`);showPage('home')
+}
+function addManual(){const x={desc:desc.value.trim(),amount:amount.value,category:category.value,date:date.value,payment:payment.value};if(!addExpense(x)){alert('内容と金額を入力してね');return}desc.value='';amount.value='';save();alert('支出を保存したよ')}
+function addIncome(){let n=Number(incomeAmount.value);if(n<=0){alert('金額を入力してね');return}data.incomes.push({amount:n,date:iso(new Date())});incomeAmount.value='';save();alert('収入を記録したよ')}
+function saveInvest(){data.investment=Math.max(0,Number(investAmount.value)||0);save();alert('積立額を保存したよ')}
+function addEntryHtml(x){return `<div class="entry"><div class="row"><div><div class="desc">${esc(x.desc)}</div><div class="meta">${esc(x.category)} ・ ${esc(x.payment)} ・ ${x.date}</div></div><b>${yen(x.amount)}</b></div><div class="actions" style="margin-top:7px"><button class="ghost" onclick="editExpense('${x.id}')">編集</button><button class="danger" onclick="deleteExpense('${x.id}')">削除</button></div></div>`}
+function editExpense(id){let x=data.expenses.find(e=>String(e.id)===String(id));if(!x)return;let d=prompt('内容',x.desc);if(d===null)return;let a=prompt('金額（円）',x.amount);if(a===null)return;let c=prompt('項目（'+cats.join(' / ')+'）',x.category);if(c===null)return;let p=prompt('支払方法',x.payment);if(p===null)return;let dt=prompt('日付 YYYY-MM-DD',x.date);if(dt===null)return;x.desc=d;x.amount=Number(a)||x.amount;x.category=c;x.payment=p;x.date=dt;save()}
+function deleteExpense(id){if(!confirm('この支出を削除する？'))return;data.expenses=data.expenses.filter(x=>String(x.id)!==String(id));save()}
+function categoryTotals(arr){let o={};cats.forEach(c=>o[c]=0);arr.forEach(x=>o[x.category]=(o[x.category]||0)+Number(x.amount));return o}
+function catHtml(arr){let t=categoryTotals(arr),total=sum(arr);return cats.filter(c=>t[c]>0).sort((a,b)=>t[b]-t[a]).map(c=>`<div class="catrow"><div class="row"><span>${c}</span><b>${yen(t[c])}</b></div><div class="bar"><i style="width:${total?Math.min(100,t[c]/total*100):0}%"></i></div><div class="small muted">${total?Math.round(t[c]/total*100):0}%</div></div>`).join('')||'<div class="empty">まだ支出の記録がないよ</div>'}
+function buildAdvice(arr){
+ const total=sum(arr),t=categoryTotals(arr),rank=Object.entries(t).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]);let out=[];
+ if(!arr.length)return '<div class="empty">支出を記録すると、項目ごとの傾向を分析するよ。</div>';
+ if(total>data.budget)out.push(`<div class="advice warning">今月は予算を<strong>${yen(total-data.budget)}</strong>超えているよ。まずは今後の予定支出を確認して、調整できる項目を探そう。</div>`);
+ else if(total/data.budget>=.8)out.push(`<div class="advice warning">予算の${Math.round(total/data.budget*100)}%を使っているよ。月末までの残り日数も考えて、少しペースを確認しよう。</div>`);
+ else out.push(`<div class="advice">今のところ予算内で進んでいるよ。必要な支出まで無理に削らなくて大丈夫。</div>`);
+ if(rank.length){let [c,v]=rank[0];out.push(`<div class="advice"><strong>${c}</strong>が今月いちばん大きく、${yen(v)}だよ。ここをすぐゼロにするより、内容を見て「満足度の低い出費」や「回数を減らせる出費」がないか確認するのがおすすめ。</div>`)}
+ let cafes=t['カフェ・飲み物']||0,food=t['食費']||0,fun=t['趣味・娯楽']||0;
+ if(cafes>3000)out.push(`<div class="advice">カフェ・飲み物は${yen(cafes)}。買う回数を少し調整できるか、家で代用できる日があるか考えてみよう。</div>`);
+ if(food>0)out.push(`<div class="advice">食費は${yen(food)}。食事の質や必要な食事を削るのではなく、外食の選び方や飲み物など、負担の少ないところから見直そう。</div>`);
+ if(fun>0)out.push(`<div class="advice">趣味・娯楽は${yen(fun)}。楽しみとして納得して使えているなら、最初から削る対象にしなくていいよ。予算を決めて安心して楽しもう。</div>`);
+ return out.join('');
+}
+function render(){
+ const arr=thisExpenses(),spent=sum(arr),remaining=data.budget-spent,today=iso(new Date()),todayArr=data.expenses.filter(x=>x.date===today);
+ monthLabel.textContent=`${new Date().getFullYear()}年${new Date().getMonth()+1}月の生活費`;remainingEl=document.getElementById('remaining');remainingEl.textContent=yen(remaining);remainingEl.style.color=remaining<0?'var(--red)':'var(--ink)';
+ spentEl=document.getElementById('spent');spentEl.textContent=yen(spent);budgetText.textContent=yen(data.budget);budgetBar.style.width=Math.min(100,data.budget?spent/data.budget*100:0)+'%';todayTotal.textContent=yen(sum(todayArr));recordCount.textContent=arr.length+'件';homeCats.innerHTML=catHtml(arr);todayEntries.innerHTML=todayArr.length?todayArr.map(addEntryHtml).join(''):'<div class="empty">今日の記録はまだないよ</div>';
+ analysisMonth.textContent=monthKey();analysisSpent.textContent=yen(spent);analysisIncome.textContent=yen(sum(data.incomes.filter(x=>x.date.slice(0,7)===monthKey())));analysisRemaining.textContent=yen(remaining);analysisCats.innerHTML=catHtml(arr);adviceBox.innerHTML=buildAdvice(arr);
+ budgetSetting.value=data.budget;investAmount.value=data.investment;renderCalendar();
+ if(data.goal){goalName.value=data.goal.name;goalTarget.value=data.goal.target;goalCurrent.value=data.goal.current;goalDisplay.innerHTML=`<b>${esc(data.goal.name)}</b><div class="big">${yen(data.goal.current)}</div><div class="muted small">目標 ${yen(data.goal.target)}</div><div class="progress"><i style="width:${Math.min(100,data.goal.target?data.goal.current/data.goal.target*100:0)}%"></i></div><div class="small muted">達成率 ${data.goal.target?Math.round(data.goal.current/data.goal.target*100):0}%</div>`}else goalDisplay.innerHTML='<div class="empty">目標を設定すると進捗を表示するよ。</div>';
+ const catsel=document.getElementById('category');if(!catsel.options.length)cats.forEach(c=>catsel.add(new Option(c,c)));
+ if(!date.value)date.value=today;
+}
+function renderCalendar(){
+ const y=calDate.getFullYear(),m=calDate.getMonth();calTitle.textContent=`${y}年${m+1}月`;let first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate(),html='<table><thead><tr>'+['日','月','火','水','木','金','土'].map(x=>`<th>${x}</th>`).join('')+'</tr></thead><tbody><tr>';
+ for(let i=0;i<first;i++)html+='<td></td>';
+ for(let d=1;d<=days;d++){let dt=iso(new Date(y,m,d)),amt=sum(data.expenses.filter(x=>x.date===dt));if((first+d-1)%7===0&&d!==1)html+='</tr><tr>';html+=`<td><button class="${dt===iso(new Date())?'today':''}" style="${dt===selectedDate?'background:#dceee2':''}" onclick="selectDay('${dt}')">${d}${amt?`<br><b>${amt>=10000?(amt/10000).toFixed(1)+'万':amt.toLocaleString('ja-JP')}</b>`:''}</button></td>`}
+ html+='</tr></tbody></table>';calendarGrid.innerHTML=html;showDay()
+}
+function selectDay(dt){selectedDate=dt;renderCalendar()}
+function showDay(){selectedDateLabel.textContent=selectedDate+' の記録';let a=data.expenses.filter(x=>x.date===selectedDate);dayEntries.innerHTML=a.length?a.map(addEntryHtml).join(''):'<div class="empty">この日の支出はまだないよ</div>'}
+function changeMonth(n){calDate.setMonth(calDate.getMonth()+n);renderCalendar()}
+function saveBudget(){data.budget=Math.max(0,Number(budgetSetting.value)||0);save();alert('予算を保存したよ')}
+function saveGoal(){let name=goalName.value.trim(),target=Number(goalTarget.value),current=Number(goalCurrent.value)||0;if(!name||target<=0){alert('目標名と目標金額を入力してね');return}data.goal={name,target,current};save()}
+function copyAdvicePrompt(){let arr=thisExpenses(),t=categoryTotals(arr);let summary=Object.entries(t).filter(x=>x[1]>0).map(([k,v])=>`${k}: ${v}円`).join('\n');let prompt=`今月の家計データをもとに、無理のない節約アドバイスをして。\n生活費予算：${data.budget}円\n支出合計：${sum(arr)}円\n項目別支出：\n${summary}\n\n使う価値のある支出まで一律に削らず、優先順位をつけて「今後控えた方がよさそうな支出」「削らなくてよい支出」「来月の項目別予算」を具体的に提案して。`;if(navigator.clipboard?.writeText){navigator.clipboard.writeText(prompt).then(()=>copyStatus.textContent='相談文をコピーしたよ。ChatGPTに貼り付けてね。').catch(()=>fallbackCopy(prompt))}else fallbackCopy(prompt)}
+function fallbackCopy(s){let t=document.createElement('textarea');t.value=s;document.body.appendChild(t);t.select();try{document.execCommand('copy');copyStatus.textContent='相談文をコピーしたよ。ChatGPTに貼り付けてね。'}catch(e){copyStatus.textContent=s}t.remove()}
+function exportBackup(){let b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='money-mate-backup.json';a.click();URL.revokeObjectURL(a.href)}
+function restoreBackup(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);if(!Array.isArray(d.expenses))throw Error();data={...fresh(),...d};save();alert('バックアップを復元したよ')}catch(err){alert('このファイルは読み込めなかったよ')}};r.readAsText(f);e.target.value=''}
+function exportCSV(){let rows=[['日付','内容','項目','金額','支払方法'],...data.expenses.map(x=>[x.date,x.desc,x.category,x.amount,x.payment])];let csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');let b=new Blob(['\ufeff'+csv],{type:'text/csv'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='money-mate-expenses.csv';a.click();URL.revokeObjectURL(a.href)}
+render();
+</script>
+</body></html>
